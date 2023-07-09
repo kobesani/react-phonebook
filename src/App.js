@@ -1,31 +1,30 @@
 import { useState } from 'react'
 
 const App = (props) => {
+  const attributes = [
+    "name", "number"
+  ]
   const [persons, setPersons] = useState(props.persons)
   const [filteredPersons, setFilteredPersons] = useState(props.persons)
   const [newEntry, setNewEntry] = useState({name: "", number: ""})
   const [searchTerm, setSearchTerm] = useState("")
 
-  const handleNameChange = (event) => {
-    console.log(event.target.value)
-    setNewEntry(
-      existingValues => (
-        {
-          ...existingValues,
-          name: event.target.value
-        }
-      )
-    )
-  }
-
-  const handleNumberChange = (event) => {
-    console.log(event.target.value)
-    setNewEntry(
-      existingValues => (
-        {
-          ...existingValues,
-          number: event.target.value
-        }
+  const handleChange = (valueToChange) => {
+    if (
+      attributes.filter(
+        (attribute) => attribute === valueToChange).length === 0
+    ) {
+      throw new Error(`${valueToChange} is not in ${attributes}`)
+    }
+    console.log(valueToChange)
+    return (
+      (event) => setNewEntry(
+        existingValues => (
+          {
+            ...existingValues,
+            [valueToChange]: event.target.value
+          }
+        )
       )
     )
   }
@@ -43,15 +42,22 @@ const App = (props) => {
       return (false)
     }
 
-    setPersons(
-      persons.concat(
-        {
-          id: persons.length + 1,
-          name: newEntry.name,
-          number: newEntry.number,
-        }
+    const newPersons = [
+      ...persons, {
+        id: persons.length + 1,
+        name: newEntry.name,
+        number: newEntry.number,
+      }
+    ]
+
+    setPersons(newPersons)
+
+    setFilteredPersons(
+      newPersons.filter(
+        (person) => person.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     )
+
     setNewEntry({name: "", number: ""})
     return (true)
   }
@@ -60,11 +66,6 @@ const App = (props) => {
     console.log(event.target.value.toLowerCase())
     setSearchTerm(event.target.value)
 
-    const filteredPersons = persons.filter(
-      (person) =>
-        person.name.toLowerCase().includes(event.target.value.toLowerCase())
-    )
-    console.log(filteredPersons)
     // filtered persons is a subset of the phonebook entries
     setFilteredPersons(
       persons.filter(
@@ -82,8 +83,8 @@ const App = (props) => {
       <h2>Add a new entry</h2>
       <form onSubmit={addEntry}>
         <div>
-          name: <input value={newEntry.name} onChange={handleNameChange} /><br/>
-          number: <input value={newEntry.number} onChange={handleNumberChange} />
+          name: <input value={newEntry.name} onChange={handleChange("name")} /><br/>
+          number: <input value={newEntry.number} onChange={handleChange("number")} />
         </div>
         <div>
           <button type="submit">add</button>
