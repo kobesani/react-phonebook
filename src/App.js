@@ -1,13 +1,33 @@
-import { useState } from 'react'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
 
 const App = (props) => {
-  const attributes = [
-    "name", "number"
-  ]
-  const [persons, setPersons] = useState(props.persons)
-  const [filteredPersons, setFilteredPersons] = useState(props.persons)
+  const attributes = ["name", "number"]
+  const [persons, setPersons] = useState([])
+  const [filteredPersons, setFilteredPersons] = useState([])
   const [newEntry, setNewEntry] = useState({name: "", number: ""})
   const [searchTerm, setSearchTerm] = useState("")
+
+  const hook = () => {
+    axios
+      .get("http://localhost:3001/persons")
+      .then(
+        response => {
+          console.log("promise fulfilled")
+          setPersons(response.data)
+          setFilteredPersons(response.data)
+        }
+      )
+  }
+  useEffect(hook, [])
+
+  console.log(
+    "render",
+    persons.length,
+    "persons",
+    filteredPersons.length,
+    "filteredPersons"
+  )
 
   const handleChange = (valueToChange) => {
     if (
