@@ -51,16 +51,37 @@ const App = (props) => {
 
   const addEntry = (event) => {
     event.preventDefault()
+    const match = persons.find(person => person.name === newEntry.name)
 
-    if (
-      persons
-      .filter((person) => person.name === newEntry.name)
-      .length > 0
-    ) {
-      console.log(`${newEntry.name} already in list`)
-      window.alert(`${newEntry.name} is already in the phonebook!`)
-      return (false)
+    if (match && window.confirm(`${newEntry.name} is already in the phonebook, do you want to replace the number?`)) {
+      phonebookServices.updateEntry(match.id, newEntry).then(
+        updatedEntry => {
+          setPersons(persons.map(person => person.id !== updatedEntry.id ? person : updatedEntry))
+          setFilteredPersons(filteredPersons.map(person => person.name !== updatedEntry.name ? person : updatedEntry))
+          setNewEntry({name: "", number: ""})
+        }
+      )
+      // phonebookServices.updateEntry(match.id, {...newEntry, id: match.id})
+      return (true)
     }
+
+    // if (
+    //   persons
+    //   .filter((person) => person.name === newEntry.name)
+    //   .length > 0
+    // ) {
+    //   console.log(`${newEntry.name} already in list`)
+    //   window.alert(`${newEntry.name} is already in the phonebook!`)
+    //   // if (
+    //   //   window
+    //   //   .confirm(
+    //   //     `${newEntry.name} is already in the phonebook, replace the old number with this new one?`
+    //   //   )
+    //   // ) {
+    //   //   phonebookServices.
+    //   // }
+    //   return (false)
+    // }
 
     phonebookServices
       .createEntry(newEntry)
@@ -103,7 +124,10 @@ const App = (props) => {
     setFilteredPersons(
       persons.filter(
         (person) =>
-          person.name.toLowerCase().includes(event.target.value.toLowerCase())
+          person
+            .name
+            .toLowerCase()
+            .includes(event.target.value.toLowerCase())
       )
     )
   }
