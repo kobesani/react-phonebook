@@ -1,5 +1,6 @@
-import axios from 'axios'
 import { useEffect, useState } from 'react'
+
+import phonebookServices from './services/phonebook'
 
 const App = (props) => {
   const attributes = ["name", "number"]
@@ -9,13 +10,12 @@ const App = (props) => {
   const [searchTerm, setSearchTerm] = useState("")
 
   const hook = () => {
-    axios
-      .get("http://localhost:3001/persons")
+    phonebookServices
+      .getAllEntries()
       .then(
-        response => {
-          console.log("promise fulfilled")
-          setPersons(response.data)
-          setFilteredPersons(response.data)
+        entries => {
+          setPersons(entries)
+          setFilteredPersons(entries)
         }
       )
   }
@@ -62,26 +62,37 @@ const App = (props) => {
       return (false)
     }
 
-    axios.post("http://localhost:3001/persons", newEntry).then(
-      response => {
-        console.log(response.data)
-        const newPersons = [...persons, response.data]
-        setPersons(newPersons)
-        setFilteredPersons(
-          newPersons
-            .filter(
-              (person) =>
-                person
-                  .name
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase())
-            )
-        )
-        setNewEntry({name: "", number: ""})
-      }
-    )
+    phonebookServices
+      .createEntry(newEntry)
+      .then(
+        returnedEntry => {
+          console.log(returnedEntry)
+          setPersons([...persons, returnedEntry])
+
+          if (
+            returnedEntry
+              .name
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())
+          ) {
+            setFilteredPersons([...filteredPersons, returnedEntry])
+          }
+
+          setNewEntry({name: "", number: ""})
+        }
+      )
 
     return (true)
+  }
+
+  const deleteEntry = (id, name) => {
+    if (window.confirm(`Delete ${name}?`)) {
+      phonebookServices
+        .deleteEntry(id)
+        .then(result => console.log(`deleted ${id}: ${result}`))
+      setPersons(persons.filter(person => person.id !== id))
+      setFilteredPersons(filteredPersons.filter(person => person.id !== id))
+    }
   }
 
   const handleSearchTermChange = (event) => {
@@ -119,6 +130,7 @@ const App = (props) => {
             person =>
               <li key={person.id}>
                 {person.name} {person.number}
+                <button onClick={() => deleteEntry(person.id, person.name)}>delete</button>
               </li>
           )
         }
