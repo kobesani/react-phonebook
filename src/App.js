@@ -62,23 +62,25 @@ const App = (props) => {
       return (false)
     }
 
-    const newPersons = [
-      ...persons, {
-        id: persons.length + 1,
-        name: newEntry.name,
-        number: newEntry.number,
+    axios.post("http://localhost:3001/persons", newEntry).then(
+      response => {
+        console.log(response.data)
+        const newPersons = [...persons, response.data]
+        setPersons(newPersons)
+        setFilteredPersons(
+          newPersons
+            .filter(
+              (person) =>
+                person
+                  .name
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase())
+            )
+        )
+        setNewEntry({name: "", number: ""})
       }
-    ]
-
-    setPersons(newPersons)
-
-    setFilteredPersons(
-      newPersons.filter(
-        (person) => person.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
     )
 
-    setNewEntry({name: "", number: ""})
     return (true)
   }
 
@@ -99,7 +101,7 @@ const App = (props) => {
     <div>
       <h2>Phonebook</h2>
       <h2>Filter</h2>
-      <input value={searchTerm} onChange={handleSearchTermChange}/>
+      <input value={searchTerm} onChange={handleSearchTermChange} />
       <h2>Add a new entry</h2>
       <form onSubmit={addEntry}>
         <div>
