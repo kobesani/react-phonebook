@@ -1,20 +1,10 @@
 import { useEffect, useState } from 'react'
 
+import Entry from './components/Entry'
+import Notification from './components/Notification'
 import phonebookServices from './services/phonebook'
 
 const attributes = ["name", "number"]
-
-const Notification = ({ message, className }) => {
-  if (message === null) {
-    return (null)
-  }
-
-  return (
-    <div className={className}>
-      {message}
-    </div>
-  )
-}
 
 const App = (props) => {
   const [persons, setPersons] = useState([])
@@ -189,10 +179,12 @@ const App = (props) => {
         {
           filteredPersons.map(
             person =>
-              <li key={person.id}>
-                {person.name} {person.number}
-                <button onClick={() => deleteEntry(person.id, person.name)}>delete</button>
-              </li>
+              <Entry
+                key={person.id}
+                person={person}
+                clickHandler={() => deleteEntry(person.id, person.name)}
+                buttonText="delete"
+              />
           )
         }
       </ul>
