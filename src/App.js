@@ -2,12 +2,26 @@ import { useEffect, useState } from 'react'
 
 import phonebookServices from './services/phonebook'
 
+const attributes = ["name", "number"]
+
+const Notification = ({ message }) => {
+  if (message === null) {
+    return (null)
+  }
+
+  return (
+    <div className='notification'>
+      {message}
+    </div>
+  )
+}
+
 const App = (props) => {
-  const attributes = ["name", "number"]
   const [persons, setPersons] = useState([])
   const [filteredPersons, setFilteredPersons] = useState([])
   const [newEntry, setNewEntry] = useState({name: "", number: ""})
   const [searchTerm, setSearchTerm] = useState("")
+  const [statusMessage, setStatusMessage] = useState(null)
 
   const hook = () => {
     phonebookServices
@@ -21,14 +35,6 @@ const App = (props) => {
   }
   useEffect(hook, [])
 
-  console.log(
-    "render",
-    persons.length,
-    "persons",
-    filteredPersons.length,
-    "filteredPersons"
-  )
-
   const handleChange = (valueToChange) => {
     if (
       attributes.filter(
@@ -36,7 +42,6 @@ const App = (props) => {
     ) {
       throw new Error(`${valueToChange} is not in ${attributes}`)
     }
-    console.log(valueToChange)
     return (
       (event) => setNewEntry(
         existingValues => (
@@ -53,60 +58,59 @@ const App = (props) => {
     event.preventDefault()
     const match = persons.find(person => person.name === newEntry.name)
 
-    if (match && window.confirm(`${newEntry.name} is already in the phonebook, do you want to replace the number?`)) {
-      phonebookServices.updateEntry(match.id, newEntry).then(
-        updatedEntry => {
-          setPersons(persons.map(person => person.id !== updatedEntry.id ? person : updatedEntry))
-          setFilteredPersons(filteredPersons.map(person => person.name !== updatedEntry.name ? person : updatedEntry))
-          setNewEntry({name: "", number: ""})
+    if (match) {
+      if (window.confirm(`${newEntry.name} is already in the phonebook, do you want to replace the number?`)) {
+        phonebookServices
+          .updateEntry(match.id, newEntry)
+          .then(
+            updatedEntry => {
+              setPersons(persons.map(person => person.id !== updatedEntry.id ? person : updatedEntry))
+              setFilteredPersons(
+                filteredPersons.map(
+                  person => person.name !== updatedEntry.name ? person : updatedEntry
+                )
+              )
+              setStatusMessage(`${updatedEntry.name} updated in the phonebook`)
+              setTimeout(
+                () => {
+                  setStatusMessage(null)
+                }, 5000
+              )
+              setNewEntry({name: "", number: ""})
+            }
+          )
         }
-      )
-      // phonebookServices.updateEntry(match.id, {...newEntry, id: match.id})
-      return (true)
-    }
-
-    // if (
-    //   persons
-    //   .filter((person) => person.name === newEntry.name)
-    //   .length > 0
-    // ) {
-    //   console.log(`${newEntry.name} already in list`)
-    //   window.alert(`${newEntry.name} is already in the phonebook!`)
-    //   // if (
-    //   //   window
-    //   //   .confirm(
-    //   //     `${newEntry.name} is already in the phonebook, replace the old number with this new one?`
-    //   //   )
-    //   // ) {
-    //   //   phonebookServices.
-    //   // }
-    //   return (false)
-    // }
-
-    phonebookServices
-      .createEntry(newEntry)
-      .then(
-        returnedEntry => {
-          console.log(returnedEntry)
-          setPersons([...persons, returnedEntry])
-
-          if (
-            returnedEntry
-              .name
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
-          ) {
-            setFilteredPersons([...filteredPersons, returnedEntry])
+      } else {
+        phonebookServices
+        .createEntry(newEntry)
+        .then(
+          returnedEntry => {
+            console.log(returnedEntry)
+            setPersons([...persons, returnedEntry])
+            
+            if (
+              returnedEntry
+                .name
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            ) {
+              setFilteredPersons([...filteredPersons, returnedEntry])
+            }
+            setStatusMessage(`${returnedEntry.name} added to the phonebook`)
+            setTimeout(
+              () => {
+                setStatusMessage(null)
+              }, 5000
+            )
+            console.log(statusMessage)
+            setNewEntry({name: "", number: ""})
           }
-
-          setNewEntry({name: "", number: ""})
-        }
-      )
-
-    return (true)
-  }
-
-  const deleteEntry = (id, name) => {
+        )
+      }
+      console.log(statusMessage)
+    }
+    
+    const deleteEntry = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
       phonebookServices
         .deleteEntry(id)
@@ -135,6 +139,7 @@ const App = (props) => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={statusMessage} />
       <h2>Filter</h2>
       <input value={searchTerm} onChange={handleSearchTermChange} />
       <h2>Add a new entry</h2>
