@@ -4,13 +4,13 @@ import phonebookServices from './services/phonebook'
 
 const attributes = ["name", "number"]
 
-const Notification = ({ message }) => {
+const Notification = ({ message, className }) => {
   if (message === null) {
     return (null)
   }
 
   return (
-    <div className='notification'>
+    <div className={className}>
       {message}
     </div>
   )
@@ -21,7 +21,7 @@ const App = (props) => {
   const [filteredPersons, setFilteredPersons] = useState([])
   const [newEntry, setNewEntry] = useState({name: "", number: ""})
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusMessage, setStatusMessage] = useState(null)
+  const [statusMessage, setStatusMessage] = useState({message: null, className: null})
 
   const hook = () => {
     phonebookServices
@@ -54,6 +54,17 @@ const App = (props) => {
     )
   }
 
+  const updateStatusMessage = (newMessage, notificationType, timeout=5000) => {
+    setStatusMessage(
+      {message: newMessage, className: notificationType}
+    )
+    setTimeout(
+      () => {
+        setStatusMessage({message: null, ...statusMessage})
+      }, timeout
+    )
+  }
+
   const addEntry = (event) => {
     event.preventDefault()
     const match = persons.find(person => person.name === newEntry.name)
@@ -64,23 +75,31 @@ const App = (props) => {
           .updateEntry(match.id, newEntry)
           .then(
             updatedEntry => {
+              console.log(updatedEntry)
               setPersons(persons.map(person => person.id !== updatedEntry.id ? person : updatedEntry))
               setFilteredPersons(
                 filteredPersons.map(
                   person => person.name !== updatedEntry.name ? person : updatedEntry
                 )
               )
-              setStatusMessage(`${updatedEntry.name} updated in the phonebook`)
-              setTimeout(
-                () => {
-                  setStatusMessage(null)
-                }, 5000
+              updateStatusMessage(
+                `${updatedEntry.name} updated in the phonebook`,
+                "notification"
               )
               setNewEntry({name: "", number: ""})
             }
           )
-        }
-      } else {
+          .catch(
+            error => {
+              updateStatusMessage(
+                `${newEntry.name} was deleted from the phonebook`,
+                "error"
+              )
+              setNewEntry({name: "", number: ""})
+            }
+          )
+      }
+    } else {
         phonebookServices
         .createEntry(newEntry)
         .then(
@@ -96,25 +115,38 @@ const App = (props) => {
             ) {
               setFilteredPersons([...filteredPersons, returnedEntry])
             }
-            setStatusMessage(`${returnedEntry.name} added to the phonebook`)
-            setTimeout(
-              () => {
-                setStatusMessage(null)
-              }, 5000
+            updateStatusMessage(
+              `${returnedEntry.name} added to the phonebook`,
+              "notification"
             )
-            console.log(statusMessage)
             setNewEntry({name: "", number: ""})
           }
         )
       }
-      console.log(statusMessage)
-    }
     
-    const deleteEntry = (id, name) => {
+  }
+    
+  const deleteEntry = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
       phonebookServices
         .deleteEntry(id)
-        .then(result => console.log(`deleted ${id}: ${result}`))
+        .then(
+          result => {
+            console.log(`deleted ${id}: ${result}`)
+            updateStatusMessage(
+              `${name} deleted from the phonebook`, "notification"
+            )
+          }
+        )
+        .catch(
+          error => {
+            updateStatusMessage(
+              `${name} was already deleted from the phonebook`,
+              "error"
+            )
+            setNewEntry({name: "", number: ""})
+          }
+        )
       setPersons(persons.filter(person => person.id !== id))
       setFilteredPersons(filteredPersons.filter(person => person.id !== id))
     }
@@ -139,7 +171,7 @@ const App = (props) => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={statusMessage} />
+      <Notification message={statusMessage.message} className={statusMessage.className} />
       <h2>Filter</h2>
       <input value={searchTerm} onChange={handleSearchTermChange} />
       <h2>Add a new entry</h2>
