@@ -43,3 +43,8 @@ jobs:
         with:
           name: react-github-actions-release-build.zip
           path: react-github-actions-release-build.zip
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: react-github-actions-release-build.zip
+          token: ${{ secrets.GITHUB_TOKEN }} # Available by default
