@@ -11,7 +11,9 @@ const App = (props) => {
   const [filteredPersons, setFilteredPersons] = useState([])
   const [newEntry, setNewEntry] = useState({name: "", number: ""})
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusMessage, setStatusMessage] = useState({message: null, className: null})
+  const [statusMessage, setStatusMessage] = useState(
+    {message: null, className: null}
+  )
 
   const hook = () => {
     phonebookServices
@@ -183,7 +185,6 @@ const App = (props) => {
                 key={person.id}
                 person={person}
                 clickHandler={() => deleteEntry(person.id, person.name)}
-                buttonText="delete"
               />
           )
         }
