@@ -60,6 +60,10 @@ const App = (props) => {
   const addEntry = (event) => {
     event.preventDefault()
     const match = persons.find(person => person.name === newEntry.name)
+    if (!(newEntry.name && newEntry.number)) {
+      updateStatusMessage("Must provide a name and number", "error");
+      return;
+    }
 
     if (match) {
       if (window.confirm(`${newEntry.name} is already in the phonebook, do you want to replace the number?`)) {

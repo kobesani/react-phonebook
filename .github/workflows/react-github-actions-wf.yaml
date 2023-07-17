@@ -51,8 +51,3 @@ jobs:
           files: react-github-actions-release-build.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Release
-      #   uses: ncipollo/release-action@v1
-      #   with:
-      #     artifacts: react-github-actions-release-build.zip
-      #     token: ${{ secrets.GITHUB_TOKEN }} # Available by default
