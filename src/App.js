@@ -96,13 +96,12 @@ const App = (props) => {
           )
       }
     } else {
-        phonebookServices
+      phonebookServices
         .createEntry(newEntry)
         .then(
           returnedEntry => {
             console.log(returnedEntry)
             setPersons([...persons, returnedEntry])
-            
             if (
               returnedEntry
                 .name
@@ -116,6 +115,14 @@ const App = (props) => {
               "notification"
             )
             setNewEntry({name: "", number: ""})
+          }
+        )
+        .catch(
+          error => {
+            console.log(error.response.data.error);
+            updateStatusMessage(
+              error.response.data.error,"error"
+            );
           }
         )
       }
